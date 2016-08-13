@@ -1,0 +1,125 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+.clearfix:after {
+    clear: both;
+    content: "";
+    display: table;
+}
+
+/*Задаем clearfix родительскому блоку для floatБ так же можно использовать overflow hidden*/
+
+body {
+    font-family: 'Open Sans', arial, helvetica, sans-serif;
+    background: #fff;
+    color: black;
+    font-size: 14px;
+    line-height: 22px;
+    min-width: 960px;
+}
+
+button, input[type="button"], input[type="submit"] {
+    cursor: pointer;
+    outline: none;
+}
+
+.container {
+    width: 942px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+header {
+    background: #736666;
+    height: 80px;
+    background-size: cover;
+    margin-bottom: 40px;
+}
+
+.header-top {
+    height: 120px;
+    padding-top: 13px;
+    margin-bottom: 163px;
+}
+
+.logo {
+    float: left;
+    margin-left: 3px;
+}
+
+.main__nav {
+    padding-top: 17px;
+    margin: 0 60px 0 329px;
+}
+
+nav ul {
+    list-style: none;
+}
+
+nav ul li {
+    display: inline-block;
+    margin: 0 23px 0 0;
+    padding-bottom: 14px;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+nav li:hover {
+    border-bottom: 3px solid #1abc9c;
+}
+
+nav a:active {
+    color: #1abc9c;
+}
+
+.auth {
+    color: #fff;
+    float: right;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    padding-top: 18px;
+    padding-bottom: 14px;
+    margin-left: 20px;
+}
+
+.auth:hover {
+    border-bottom: 3px solid #1abc9c;
+}
+
+.auth:active {
+    color: #1abc9c;
+}
+
+.post {
+    width: 200px;
+    height: 200px;
+    float: left;
+    margin-left: 30px;
+}
+
+.post:first-child {
+    margin-left: 10px;
+}
+
+.blog {
+    overflow: hidden;
+}
+
+.title {
+    font-size: 20px;
+    color: cornflowerblue;
+}

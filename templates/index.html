@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+
+<body>
+<header>
+    <!--<div class="container">-->
+        <div class="header-top clearfix">
+            <div class="logo">
+                <!--<a href="#"><img src="/img/logo_attractor.png" height="56" width="154" alt="IT-Attractor"></a>-->
+            </div>
+            <nav class="main__nav">
+                <ul>
+                    <li><a href="/index/">Home</a></li>
+                    {%if status %}
+                    <li>Добро пожаловать {{username}}</li>
+                    {%else%}
+                    <li><a href="/admin/">Войти</a></li>
+                    {%end%}
+                    <li><a href="/admin/">Админ</a></li>
+                </ul>
+            </nav>
+        </div><!--/header-top-->
+    <!--</div>-->
+</header>
+<div class="blog">
+    {{blog}}
+</div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "post": [
+    {
+      "id": 1,
+      "title": "python",
+      "description": "python language",
+      "like": 5,
+      "author": "user"
+    },
+    {
+      "id": 2,
+      "title": "java",
+      "description": "java language",
+      "like": 15,
+      "author": "user"
+    },
+    {
+      "id": 2,
+      "title": "c++",
+      "description": "c++ language",
+      "like": 15,
+      "author": "user1"
+    }
+  ]
+}
