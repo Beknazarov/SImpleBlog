@@ -15,10 +15,10 @@
       "author": "user"
     },
     {
-      "id": 2,
+      "id": 3,
       "title": "c++",
       "description": "c++ language",
-      "like": 15,
+      "like": 8,
       "author": "user1"
     }
   ]

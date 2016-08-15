@@ -1,11 +1,19 @@
 import unittest
 from unittest import TestCase
 
-from db.database import DataAccessLayer
+from db.database import DataAccessLayer, Blog
+
+import json
+
+
+def get_post_array():
+    with open('/home/kinglight/PycharmProjects/AttractorWebServer/json_dir/db_test_data.json', 'r') as f:
+        return json.load(f)
 
 
 class TestDataAccessLayer(TestCase):
     def setUp(self):
+        # print(get_post_array())
         self.db = DataAccessLayer()
         username = "Nursultan"
         password = "12345"
@@ -13,12 +21,18 @@ class TestDataAccessLayer(TestCase):
         address = "Partizanskaya 12"
         email = "beknazarovnursultan@gmail.com"
         self.db.CreateUser(username=username, password=password, phone=phone, address=address, email=email)
-        id = 1
-        title = 'New York'
-        description = 'USA country'
-        like = 5
-        author = username
-        self.db.CreatePost(id=id, title=title, description=description, like=like, author=author)
+
+    def test_create_multiple_post(self):
+
+        try:
+            decoded = get_post_array()
+
+            for x in decoded['post']:
+                self.db.CreatePost(id=x['id'], title=x['title'], description=x['description'], like=x['like'],
+                                   author=x['author'])
+        except (ValueError, KeyError, TypeError):
+            print("JSON format error")
+        self.assertEqual(Blog.id[0], 1)
 
     def test_user(self):
         username = "Nursultan"
@@ -33,9 +47,9 @@ class TestDataAccessLayer(TestCase):
         self.assertTrue(self.db.CheckUserIsExist("Nursultan", "12345"))
 
     def test_check_user_post(self):
-        author = "Nursultan"
+        author = "user"
         id = 1
-        self.assertTrue(self.db.CheckUserPost(author, id))
+        self.assertTrue(not self.db.CheckUserPost(author, id))
 
     def tearDown(self):
         pass
