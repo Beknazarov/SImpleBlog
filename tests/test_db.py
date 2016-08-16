@@ -1,7 +1,7 @@
 import unittest
 from unittest import TestCase
 
-from db.database import DataAccessLayer, Blog
+from db.database import DataAccessLayer, Post
 
 import json
 
@@ -13,7 +13,6 @@ def get_post_array():
 
 class TestDataAccessLayer(TestCase):
     def setUp(self):
-        # print(get_post_array())
         self.db = DataAccessLayer()
         username = "Nursultan"
         password = "12345"
@@ -32,7 +31,7 @@ class TestDataAccessLayer(TestCase):
                                    author=x['author'])
         except (ValueError, KeyError, TypeError):
             print("JSON format error")
-        self.assertEqual(Blog.id[0], 1)
+        self.assertEqual(Post.idList[0], 1)
 
     def test_user(self):
         username = "Nursultan"

@@ -2,13 +2,13 @@
 from http import HTTPStatus
 
 import settings
-from db.database import DataAccessLayer, Blog
+from db.database import DataAccessLayer
 from template_code.template import Template, post, Templates
 
 
 def index_blog(request):
     db = DataAccessLayer()
-    blog_count = len(Blog.id)
+    postCount = db.getTablePost().getCountPost()
     if get_cookies(request):
         username = get_cookies(request).get('cookie_user')
         status = True
@@ -17,13 +17,13 @@ def index_blog(request):
         status = False
 
     all_post_html = ""
-    for i in range(0, blog_count):
+    for i in range(0, postCount):
         all_post_html += "<div class='post'>"
         all_post_html += "<div class='title'><h2><a class='id' href=/index/post/%s/>%s</a></h2></div>" % (
-            str(db.getAllPost().id[i]), db.getAllPost().title[i])
-        all_post_html += "<div class='description'>%s</div>" % (db.getAllPost().description[i])
-        all_post_html += "<div class='like'>%s</div>" % (str(db.getAllPost().like[i]))
-        all_post_html += "<div class='author'>%s</div>" % (str(db.getAllPost().author[i]))
+            str(db.getTablePost().idList[i]), db.getTablePost().titleList[i])
+        all_post_html += "<div class='description'>%s</div>" % (db.getTablePost().descriptionList[i])
+        all_post_html += "<div class='like'>%s</div>" % (str(db.getTablePost().likeList[i]))
+        all_post_html += "<div class='author'>%s</div>" % (str(db.getTablePost().authorList[i]))
         all_post_html += "<hr />"
         all_post_html += "</div>"
     f = open(settings.TEMPLATES_DIR + '/index.html')
@@ -45,8 +45,8 @@ def admin_blog_view(request):
         username = "Anonym"
         request.send_header('Location', '/admin/')
     all_post_html = ""
-    blog_count = db.getCountFilterAuthor(username)
-    id, title, description, like = db.GetPostFilterByUsername(username)
+    blog_count = db.getTablePost().getPostCountByAuthor(username)
+    id, title, description, like = db.getTablePost().getPostFilterByAuthor(username)
     if blog_count <= 0:
         all_post_html = "<h1>Empty Post </h1>"
     else:
@@ -60,7 +60,7 @@ def admin_blog_view(request):
             all_post_html += "<hr />"
     f = open(settings.TEMPLATES_DIR + '/admin_post.html')
     read = f.read()
-    html = Templates(read).render(user_list=db.getUserName(), username=username, blog=all_post_html)
+    html = Templates(read).render(username=username, blog=all_post_html)
 
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
@@ -72,16 +72,19 @@ def admin_edit_post(request):
     db = DataAccessLayer()
     request.send_response(HTTPStatus.SEE_OTHER)
     edit_post_html = ""
+    author = get_cookies(request).get('cookie_user')
     if not get_cookies(request):
         request.send_header('Location', '/admin/')
     else:
-        id = request.path.split('/')[-2]
-        if not db.CheckUserPost(get_cookies(request).get('cookie_user'), id):
+        post_id = int(request.path.split('/')[-2])
+        if db.getTablePost().isPostExist(post_id):
+            request.send_header('Location', '/error/')
+        if not db.getTablePost().checkUserIsOwnPost(author, post_id):
             request.send_header('Location', '/error/')
         else:
-            title, description, like = db.EditPostById(int(id))
+            title, description, like = db.getTablePost().getPostById(post_id)
             edit_post_html += "<form action='/admin/update/' method='post'>"
-            edit_post_html += "<input type='hidden' value='%s' name='hiddenid'/><br/>" % id
+            edit_post_html += "<input type='hidden' value='%s' name='hiddenid'/><br/>" % post_id
             edit_post_html += "<input type='text' value='%s' name='title'/><br/>" % title
             edit_post_html += "<textarea cols='50' rows='10' id='description' name='description'>%s</textarea> <br/>" % description
             edit_post_html += "<input type='number' name='like' value='%s' /> <br/>" % like
@@ -107,11 +110,11 @@ def admin_update_post_method(request):
     description = post_attribute.get('description')
     like = post_attribute.get('like')
 
-    db.updatePostById(id, title, description, like)
+    db.getTablePost().updatePostById(id, title, description, like)
     all_post_html = ""
     username = get_cookies(request).get('cookie_user')
-    blog_count = db.getCountFilterAuthor(username)
-    id, title, description, like = db.GetPostFilterByUsername(username)
+    blog_count = db.getTablePost().getPostCountByAuthor(username)
+    id, title, description, like = db.getTablePost().getPostFilterByAuthor(username)
     if blog_count <= 0:
         all_post_html = "<h1>Empty Post </h1>"
     else:
@@ -137,19 +140,18 @@ def admin_update_post_method(request):
 
 def index_blog_detail(request):
     db = DataAccessLayer()
-
     id = request.path.replace(' ', '').split('/')[3]
     request.send_response(HTTPStatus.OK)
-    blog_by_id = db.GetPostIndexById(int(id))
-    post_in_blog = blog_by_id.split("/")
+    title, description, like = db.getTablePost().getPostById(int(id))
+
     f = open(settings.TEMPLATES_DIR + '/detail_post.html')
     read = f.read()
 
     post_html = '<br/>'
-    post_html += "<div class='title'>%s</div><br/>" % (post_in_blog[0])
-    post_html += "<div class='description'>%s</div><br/>" % (post_in_blog[1])
-    post_html += "<div class='like'>%s</div><br/>" % (post_in_blog[2])
-    post_html += "<div class='author'>%s</div><br/>" % (post_in_blog[3])
+    post_html += "<div class='title'>%s</div><br/>" % title
+    post_html += "<div class='description'>%s</div><br/>" % description
+    post_html += "<div class='like'>%s</div><br/>" % like
+    post_html += "<div class='author'>%s</div><br/>" % (get_cookies(request).get('cookie_user'))
     post_html += "<hr />"
 
     html = Templates(read).render(detail_blog_id=post_html)
@@ -164,7 +166,7 @@ def admin_detail_post(request):
     db = DataAccessLayer()
 
     id = request.path.replace(' ', '').split('/')[2]
-    blog_by_id = db.GetPostById(int(id))
+    blog_by_id = db.getTablePost().getPostById(int(id))
     f = open(settings.TEMPLATES_DIR + '/detail_post.html')
     read = f.read()
     html = Templates(read).render(detail_blog_id=blog_by_id)
@@ -190,10 +192,10 @@ def admin_delete_post(request):
     id = request.path.split('/')[-2]
     db = DataAccessLayer()
     request.send_response(HTTPStatus.SEE_OTHER)
-    if not db.CheckUserPost(get_cookies(request).get('cookie_user'), id):
+    if not db.getTablePost().checkUserIsOwnPost(get_cookies(request).get('cookie_user'), id):
         request.send_header('Location', '/error/')
     else:
-        db.deletePostById(int(id))
+        db.getTablePost().deletePostById(int(id))
         request.send_header('Location', '/admin/blog/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
@@ -213,9 +215,9 @@ def admin_create_blog_method_post(request):
     title = blog_attribute.get('title')
     description = blog_attribute.get('description')
     like = blog_attribute.get('like')
-    begin_blog_length = len(db.getTitlePost())
-    db.CreatePost(db.auto_increment(id), title, description, like, get_cookies(request).get('cookie_user'))
-    end_blog_length = len(db.getTitlePost())
+    begin_blog_length = int(db.getTablePost().getCountPost())
+    db.getTablePost().createPost(db.getTablePost().setAutoIncrementToPostId(id), title, description, like, get_cookies(request).get('cookie_user'))
+    end_blog_length = int(db.getTablePost().getCountPost())
 
     if end_blog_length > begin_blog_length:
         request.send_header('Location', '/admin/blog/')
@@ -249,7 +251,7 @@ def login_page_post(request):
     password = user_attribute.get('password')
 
     request.send_response(HTTPStatus.SEE_OTHER)
-    if db.CheckUserIsExist(username, password):
+    if db.getTableUser().checkUserIsExist(username, password):
         request.send_header('Set-Cookie', 'cookie_user=%s;path=/;' % username)
         request.send_header('Location', '/admin/blog/')
         print("Login Success")
@@ -288,8 +290,8 @@ def register_page_method_post(request):
     phone = user_attribute.get('phone')
     email = user_attribute.get('email')
     address = user_attribute.get('address')
-    if not db.CheckUserIsExist(username, password):
-        db.CreateUser(username, password, phone, address, email)
+    if not db.getTableUser().checkUserIsExist(username, password):
+        db.getTableUser().createUser(username, password, phone, address, email)
         print("Create success new login")
     else:
         print("Login don't register")
