@@ -3,32 +3,65 @@ from http import HTTPStatus
 
 import settings
 from db.database import DataAccessLayer
-from system import methodPost, get_cookies
+from system import method_POST, get_cookies
 from template_code.template import Template, Templates
 
 
-def indexPage(request):
+def admin_page(request):
     db = DataAccessLayer()
-    if get_cookies(request):
-        username = get_cookies(request).get('cookie_user')
-        status = True
+    request.send_response(HTTPStatus.SEE_OTHER)
+    if not get_cookies(request):
+        request.send_header('Location', '/admin/')
     else:
-        username = ""
+        request.send_header('Content-Type', 'text/html')
+    username = get_cookies(request).get('cookie_username')
+
+    posts_html = ""
+    count_posts = db.get_count_of_their_posts(username)
+    posts = db.get_to_only_their_posts(username)
+    if count_posts <= 0:
+        posts_html = "<h1>Empty Post </h1>"
+    else:
+        for post_id, posts_attr in posts.items():
+            title, description = posts_attr[0], posts_attr[1]
+            posts_html += "<div class='post_page'>"
+            posts_html += '<br/>'
+            posts_html += "<div class='update'> <a href=/admin/edit/blog/%s/> Update </a></div>" % post_id
+            posts_html += "<div class='delete'> <a href=/admin/delete/blog/%s/> Delete </a></div>" % post_id
+            posts_html += "<h2> <div class='title'>Title: %s</div></h2>" % title
+            posts_html += "<div class='description'>Description: %s</div>" % description
+
+            posts_html += "<hr />"
+            posts_html += "</div>"
+    f = open(settings.TEMPLATES_DIR + '/admin_post.html')
+    read = f.read()
+    html = Templates(read).render(username=username, posts=posts_html)
+    request.end_headers()
+    request.wfile.write(str.encode(html))
+    return request
+
+
+def index_page(request):
+    db = DataAccessLayer()
+    status = True
+    username = get_cookies(request).get('cookie_username')
+    if not get_cookies(request):
         status = False
 
     all_post_html = ""
-    for key, value in db.getAllPost().items():
-        for k, v in value.items():
+    for author, posts in db.get_all_post().items():
+        for post_id, post_attr in posts.items():
+            title, description = post_attr[0], post_attr[1]
             all_post_html += "<div class='post'>"
-            all_post_html += "<div class='title'><h2><a class='id' href=/index/post/%s/>%s</a></h2></div>" % (
-                k, v[0])
-            all_post_html += "<div class='description'>%s</div>" % v[1]
-            all_post_html += "<div class='author'>%s</div>" % key
+            all_post_html += "<div class='title'><h2>Title: <a class='id' href=/index/post/%s/>%s</a></h2></div>" % (
+                post_id, title)
+            all_post_html += "<div class='description'>Description: %s</div>" % description
+            all_post_html += "<div class='author'>Author: %s</div>" % author
             all_post_html += "<hr />"
             all_post_html += "</div>"
     f = open(settings.TEMPLATES_DIR + '/index.html')
     read = f.read()
-    html = Templates(read).render(blog=all_post_html, username=username, status=status)
+    html = Templates(read).render(posts=all_post_html, username=username, status=status)
     request.send_response(HTTPStatus.OK)
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
@@ -36,39 +69,7 @@ def indexPage(request):
     return request
 
 
-def adminPage(request):
-    db = DataAccessLayer()
-    request.send_response(HTTPStatus.SEE_OTHER)
-    if get_cookies(request):
-        username = get_cookies(request).get('cookie_user')
-    else:
-        username = "Anonym"
-        request.send_header('Location', '/admin/')
-    postUserHtml = ""
-    postCountOwnUser = db.getCountPostOwnUser(username)
-    post = db.getAllPostOwnUser(username)
-    if postCountOwnUser <= 0:
-        postUserHtml = "<h1>Empty Post </h1>"
-    else:
-        for key, value in post.items():
-            postUserHtml += '<br/>'
-            postUserHtml += '<h1>%s </h1>' % key
-            postUserHtml += "<h2><div class='title'>%s</div></h2>" % str(value[0])
-            postUserHtml += '<a href=/admin/edit/blog/%s/> Update </a><br/>' % key
-            postUserHtml += '<a href=/admin/delete/blog/%s/> Delete </a><br/><br/>' % key
-            postUserHtml += "<div class='description'>%s</div>" % (value[1])
-            postUserHtml += "<hr />"
-    f = open(settings.TEMPLATES_DIR + '/admin_post.html')
-    read = f.read()
-    html = Templates(read).render(username=username, post=postUserHtml)
-
-    request.send_header('Content-Type', 'text/html')
-    request.end_headers()
-    request.wfile.write(str.encode(html))
-    return request
-
-
-def createPostPage(request):
+def create_post(request):
     context = {}
     request.send_response(HTTPStatus.SEE_OTHER)
     if not get_cookies(request):
@@ -79,47 +80,48 @@ def createPostPage(request):
     return request
 
 
-def createPostMethodPost(request):
+def create_post_method_post(request):
     context = {}
     db = DataAccessLayer()
     request.send_response(HTTPStatus.SEE_OTHER)
     html = Template('create_post.html', context).render()
     if not get_cookies(request):
         request.send_header('Location', '/admin/')
-    postAttribute = methodPost(request)
-    title = postAttribute.get('title')
-    description = postAttribute.get('description')
-    username = get_cookies(request).get('cookie_user')
-    begin_blog_length = int(db.countPost())
-    db.createPost(username, title, description)
-    end_blog_length = int(db.countPost())
-    if end_blog_length > begin_blog_length:
+    post_attr = method_POST(request)
+    title = post_attr.get('title')
+    description = post_attr.get('description')
+    username = get_cookies(request).get('cookie_username')
+    count_before_adding_posts = int(db.count_post())
+    db.create_post(username, title, description)
+    count_after_adding_posts = int(db.count_post())
+    if count_after_adding_posts > count_before_adding_posts:
         request.send_header('Location', '/admin/blog/')
     request.end_headers()
     request.wfile.write(str.encode(html))
     return request
 
 
-def updatePost(request):
+def update_post(request):
     db = DataAccessLayer()
-    request.send_response(HTTPStatus.SEE_OTHER)
     edit_post_html = ""
-    username = get_cookies(request).get('cookie_user')
+    username = get_cookies(request).get('cookie_username')
+
+    request.send_response(HTTPStatus.SEE_OTHER)
     if not get_cookies(request):
         request.send_header('Location', '/admin/')
     else:
         post_id = int(request.path.split('/')[-2])
-        if not db.isPostExist(post_id):
-            request.send_header('Location', '/error/')
-        if not db.isPostInUser(username, post_id):
+        if not db.is_post_exist(post_id) or \
+                not db.check_the_author_of_the_posts(username, post_id):
             request.send_header('Location', '/error/')
         else:
-            post = db.getPostById(post_id)
+            post = db.get_post_by_id(post_id)
+            title, description = post[0], post[1]
             edit_post_html += "<form action='/admin/update/' method='post'>"
             edit_post_html += "<input type='hidden' value='%s' name='hiddenid'/><br/>" % post_id
-            edit_post_html += "<input type='text' value='%s' name='title'/><br/>" % post[0]
-            edit_post_html += "<textarea cols='50' rows='10' id='description' name='description'>%s</textarea> <br/>" % \
-                              post[1]
+            edit_post_html += "<input type='text' value='%s' name='title'/><br/>" % title
+            edit_post_html += "<textarea cols='50' rows='10' id='description' name='description'>%s</textarea>" \
+                              " <br/>" % description
             edit_post_html += "<input type='submit' value='Update' />"
             edit_post_html += "</form>"
     f = open(settings.TEMPLATES_DIR + '/update_post.html')
@@ -131,39 +133,40 @@ def updatePost(request):
     return request
 
 
-def updateMethodPost(request):
+def update_method_post(request):
     db = DataAccessLayer()
     request.send_response(HTTPStatus.SEE_OTHER)
     if not get_cookies(request):
         request.send_header('Location', '/admin/')
-    post_attribute = methodPost(request)
-    id = post_attribute.get('hiddenid')
+    post_attribute = method_POST(request)
+    post_id = post_attribute.get('hiddenid')
     title = post_attribute.get('title')
     description = post_attribute.get('description')
-    username = get_cookies(request).get('cookie_user')
-    db.updatePost(int(id), username, title, description)
+    username = get_cookies(request).get('cookie_username')
+    db.update_post(int(post_id), username, title, description)
     request.send_header('Content-Type', 'text/html')
     request.send_header('Location', '/admin/blog/')
     request.end_headers()
     return request
 
 
-def postDetail(request):
+def detail_post(request):
     db = DataAccessLayer()
-    id = request.path.replace(' ', '').split('/')[3]
+    post_id = request.path.replace(' ', '').split('/')[3]
+    username = get_cookies(request).get('cookie_username')
+
     request.send_response(HTTPStatus.OK)
-    post = db.getPostById(int(id))
-    print(id)
+
+    post = db.get_post_by_id(int(post_id))
     f = open(settings.TEMPLATES_DIR + '/detail_post.html')
     read = f.read()
-
-    post_html = '<br/>'
-    post_html += "<div class='title'>%s</div><br/>" % post[0]
-    post_html += "<div class='description'>%s</div><br/>" % post[1]
+    detail_post_html = '<br/>'
+    detail_post_html += "<div class='title'>Title: %s</div><br/>" % post[0]
+    detail_post_html += "<div class='description'>Description: %s</div><br/>" % post[1]
     # post_html += "<div class='author'>%s</div><br/>" % (get_cookies(request).get('cookie_user'))
-    post_html += "<hr />"
+    detail_post_html += "<hr />"
 
-    html = Templates(read).render(detail_blog_id=post_html)
+    html = Templates(read).render(detail_post=detail_post_html)
     request.send_header('Content-Type', 'text/html')
 
     request.end_headers()
@@ -171,14 +174,15 @@ def postDetail(request):
     return request
 
 
-def deletePost(request):
-    id = request.path.split('/')[-2]
+def delete_post(request):
+    post_id = request.path.split('/')[-2]
+    username = get_cookies(request).get('cookie_username')
     db = DataAccessLayer()
     request.send_response(HTTPStatus.SEE_OTHER)
-    if not db.isPostInUser(get_cookies(request).get('cookie_user'), id):
+    if not db.check_the_author_of_the_posts(username, post_id):
         request.send_header('Location', '/error/')
     else:
-        db.deletePostById(int(id))
+        db.delete_post_by_id(int(post_id))
         request.send_header('Location', '/admin/blog/')
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
@@ -198,17 +202,17 @@ def login(request):
     return request
 
 
-def loginMethodPost(request):
+def login_method_post(request):
     db = DataAccessLayer()
     request.send_response(HTTPStatus.SEE_OTHER)
 
-    userAttribute = methodPost(request)
-    username = userAttribute.get('username')
-    # password = userAttribute.get('password')
+    user_attr = method_POST(request)
+    username = user_attr.get('username')
+    password = user_attr.get('password')
 
     context = {"error": ""}
-    if db.isUserExist(username):
-        request.send_header('Set-Cookie', 'cookie_user=%s;path=/;' % username)
+    if db.is_user_exist(username, password):
+        request.send_header('Set-Cookie', 'cookie_username=%s;path=/;' % username)
         request.send_header('Location', '/admin/blog/')
         print("Login Success")
     else:
@@ -232,21 +236,20 @@ def register(request):
     return request
 
 
-def registerMethodPost(request):
+def register_method_post(request):
     context = {'title': 'Регистрация'}
     db = DataAccessLayer()
-
     request.send_response(HTTPStatus.OK)
     html = Template('register.html', context).render()
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
-    userAttribute = methodPost(request)
-    username = userAttribute.get('username')
-    password = userAttribute.get('password')
-    email = userAttribute.get('email')
-    if not db.isUserExist(username):
-        db.createUser(username, password, email)
+    user_attr = method_POST(request)
+    username = user_attr.get('username')
+    password = user_attr.get('password')
+    email = user_attr.get('email')
+    if not db.is_user_exist(username, password):
+        db.create_user(username, password, email)
         print("Create success new login")
     else:
         print("Login don't register")
@@ -255,13 +258,11 @@ def registerMethodPost(request):
 
 def logout(request):
     request.send_response(HTTPStatus.TEMPORARY_REDIRECT)
-    if get_cookies(request).get('cookie_user'):
-        request.send_header("Set-Cookie", "cookie_user=0;path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
+    if get_cookies(request).get('cookie_username'):
+        request.send_header("Set-Cookie", "cookie_username=0;path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT")
         request.send_header('Location', '/admin/')
-
     else:
         request.send_header('Content-Type', 'text/html')
-
     request.end_headers()
 
 

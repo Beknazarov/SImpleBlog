@@ -3,7 +3,7 @@ import cgi
 import settings
 
 
-def methodPost(request):
+def method_POST(request):
     ctype, pdict = cgi.parse_header(request.headers['content-type'])
     if ctype == 'multipart/form-data':
         postvars = cgi.parse_multipart(request.rfile, pdict)
@@ -13,11 +13,11 @@ def methodPost(request):
 
     else:
         postvars = {}
-    userAttribute = dict()
+    model_attr = dict()
     if len(postvars):
         for key, value in postvars.items():
-            userAttribute[key.decode("utf-8")] = value[0].decode("utf-8")
-    return userAttribute
+            model_attr[key.decode("utf-8")] = value[0].decode("utf-8")
+    return model_attr
 
 
 def get_cookies(request):
@@ -56,11 +56,11 @@ def static(request):
                     request.path.endswith('.jpeg') or \
                     request.path.endswith('.gif') or \
                     request.path.endswith('.png'):
-                def load_benary(file):
+                def load_binary(file):
                     with open(file, 'rb') as file:
                         return file.read()
 
-                read = load_benary(file_path)
+                read = load_binary(file_path)
                 request.wfile.write(bytes(read))
             else:
                 f = open(file_path)

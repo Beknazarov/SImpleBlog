@@ -1,99 +1,99 @@
 class DataAccessLayer:
     users = {}
     posts = {}
-    postIdentityId = [0]
-    userIdentityId = [0]
+    post_identity_id = [0]
+    user_identity_id = [0]
 
-    def createUser(self, username, password, email):
+    def create_user(self, username, password, email):
         user_attribute = [username, password, email]
-        self.users[self.setUserIdentityId()] = user_attribute
+        self.users[self.set_identity_user_id()] = user_attribute
         self.posts[username] = {}
 
-    def createPost(self, username, title, description):
-        self.posts[username][self.setPostIdentityId()] = [title, description]
+    def create_post(self, username, title, description):
+        self.posts[username][self.set_identity_post_id()] = [title, description]
 
-    def setUserIdentityId(self):
-        self.userIdentityId[0] += 1
-        return sum(self.userIdentityId)
+    def set_identity_user_id(self):
+        self.user_identity_id[0] += 1
+        return sum(self.user_identity_id)
 
-    def setPostIdentityId(self):
-        self.postIdentityId[0] += 1
-        return sum(self.postIdentityId)
+    def set_identity_post_id(self):
+        self.post_identity_id[0] += 1
+        return sum(self.post_identity_id)
 
-    def printUser(self):
+    def print_users(self):
         return self.users
 
-    def isUserExist(self, username):
-        for userId, userAttribute in self.users.items():
-            name = userAttribute[0]
-            if name == username:
+    def print_posts(self):
+        return self.posts
+
+    def is_user_exist(self, username, password):
+        for user_attribute in self.users.values():
+            name = user_attribute[0]
+            pswd = user_attribute[1]
+            if name == username and pswd == password:
                 return True
         return False
 
-    def isPostExist(self, post_id):
-        for userId, userPost in self.posts.items():
-            for postId, postItem in userPost.items():
-                if postId == post_id:
+    def is_post_exist(self, id):
+        for posts in self.posts.values():
+            for post_id in posts.keys():
+                if post_id == id:
                     return True
         return False
 
-    def isPostInUser(self, username, id):
-        post = self.posts[username]
-        for post_id in post.keys():
-            if post_id == int(id):
+    def check_the_author_of_the_posts(self, username, post_id):
+        posts = self.posts[username]
+        for id in posts.keys():
+            if id == int(post_id):
                 return True
         return False
 
-    def printPost(self):
+    def get_post_by_id(self, id):
+        for posts in self.posts.values():
+            for post_id, item_post in posts.items():
+                if post_id == int(id):
+                    return item_post
+
+    def get_to_only_their_posts(self, username):
+        posts = self.posts[username]
+        return posts
+
+    def get_count_of_their_posts(self, username):
+        posts = self.posts[username]
+        return len(posts)
+
+    def get_all_post(self):
         return self.posts
 
-    def getPostById(self, post_id):
-        for userId, userPost in self.posts.items():
-            for postId, postItem in userPost.items():
-                if postId == post_id:
-                    return postItem
-
-    def getAllPostOwnUser(self, username):
-        post = self.posts[username]
-        return post
-
-    def getCountPostOwnUser(self, username):
-        post = self.posts[username]
-        return len(post)
-
-    def getAllPost(self):
-        return self.posts
-
-    def deletePostById(self, post_id):
-        for userId, userPost in self.posts.items():
-            for postId, postItem in userPost.items():
-                if postId == post_id:
-                    self.posts[userId].pop(postId, None)
+    def delete_post_by_id(self, id):
+        for user_id, user_posts in self.posts.items():
+            for post_id in user_posts.keys():
+                if post_id == id:
+                    self.posts[user_id].pop(post_id, None)
                     return
 
-    def updatePost(self, post_id, username, new_title, new_description):
+    def update_post(self, post_id, username, new_title, new_description):
         self.posts[username][post_id][0] = new_title
         self.posts[username][post_id][1] = new_description
 
-    def countPost(self):
+    def count_post(self):
         count = 0
-        for userId, userPost in self.posts.items():
-            for post in userPost.values():
+        for posts in self.posts.values():
+            for post in posts.values():
                 count += 1
         return count
 
-# db = DataAccessLayer()
-# db.createUser("Nursultan", "12345", "nurs@mail.ru")
-# db.createUser("Askar", "12345", "askar@mail.ru")
-# db.createPost("Nursultan", "post2", "desc2")
-# db.createPost("Askar", "post1", "desc1")
+db = DataAccessLayer()
+db.create_user("nurs", "1", "nurs@mail.ru")
+# db.create_user("Askar", "12345", "askar@mail.ru")
+# db.create_post("Nursultan", "post2", "desc2")
+# db.create_post("Askar", "post1", "desc1")
 #
-# db.createPost("Askar", "post3", "desc3")
-# print(db.isUserExist("Askar"))
+# db.create_post("Askar", "post3", "desc3")
+# print(db.is_user_exist("Askar"))
 # for key, value in db.posts.items():
 #     for k, v in value.items():
 #         print(key)
 #         print(k)
 #         print(v)
 # print(db.posts)
-

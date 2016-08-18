@@ -123,3 +123,12 @@ nav a:active {
     font-size: 20px;
     color: cornflowerblue;
 }
+
+.post_page > .update{
+        float: left;
+    margin-right: 20px;
+}
+.post_page{
+    overflow: hidden;
+
+}
