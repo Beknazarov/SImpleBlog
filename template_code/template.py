@@ -1,6 +1,5 @@
 # coding: utf-8
 import ast
-import cgi
 import collections
 import operator
 import os
@@ -65,21 +64,6 @@ class Template(object):
 #     return main_url, GET_parametr
 
 
-def post(request):
-    ctype, pdict = cgi.parse_header(request.headers['content-type'])
-    if ctype == 'multipart/form-data':
-        postvars = cgi.parse_multipart(request.rfile, pdict)
-    elif ctype == 'application/x-www-form-urlencoded':
-        length = int(request.headers['content-length'])
-        postvars = cgi.parse_qs(request.rfile.read(length), keep_blank_values=1)
-
-    else:
-        postvars = {}
-    user_attribute = dict()
-    if len(postvars):
-        for key, value in postvars.items():
-            user_attribute[key.decode("utf-8")] = value[0].decode("utf-8")
-    return user_attribute
 
 
 def eval_expression(expr):
