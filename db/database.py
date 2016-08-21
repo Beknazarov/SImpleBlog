@@ -43,10 +43,13 @@ class DataAccessLayer:
         return False
 
     def check_the_author_of_the_posts(self, username, post_id):
-        posts = self.posts[username]
-        for id in posts.keys():
-            if id == int(post_id):
-                return True
+        try:
+            posts = self.posts[username]
+            for id in posts.keys():
+                if id == int(post_id):
+                    return True
+        except KeyError:
+            raise KeyError("User doesn't authenticated")
         return False
 
     def get_post_by_id(self, id):
@@ -86,8 +89,12 @@ class DataAccessLayer:
                 count += 1
         return count
 
+    def test_get_username_by_id(self, id):
+        for user_id, user_item in self.users.items():
+            if user_id == int(id):
+                username = user_item[0]
+                return username
+
+
 db = DataAccessLayer()
 db.create_user("nurs", "1", "nurs@mail.ru")
-
-db.create_post("nurs", "post2", "desc2")
-

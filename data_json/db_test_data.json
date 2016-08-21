@@ -1,0 +1,31 @@
+{
+  "user": [
+    {
+      "username": "Nursultan",
+      "password": "12345",
+      "email": "nurs@gmail.com"
+    },
+    {
+      "username": "Python",
+      "password": "54321",
+      "email": "python@gmail.com"
+    }
+  ],
+  "post": [
+    {
+      "title": "python",
+      "description": "python language",
+      "author": "Python"
+    },
+    {
+      "title": "java",
+      "description": "java language",
+      "author": "Nursultan"
+    },
+    {
+      "title": "c++",
+      "description": "c++ language",
+      "author": "Nursultan"
+    }
+  ]
+}

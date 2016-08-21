@@ -4,7 +4,7 @@ from http import HTTPStatus
 import settings
 from db.database import DataAccessLayer
 from method import HTTP_CODE
-from system import method_POST, get_cookies, get_post_id_after_split, clear_cookie
+from system import method_POST, get_cookies, set_cookie, set_clear_cookie
 from template_code.template import Template, Templates
 
 
@@ -12,7 +12,7 @@ def admin_page(request):
     request.send_response(HTTPStatus.SEE_OTHER)
 
     if not get_cookies(request):
-        request.send_header('Location', '/admin/')
+        redirect(request, '/admin/')
     else:
         request.send_header('Content-Type', 'text/html')
 
@@ -82,7 +82,7 @@ def create_post(request):
     db = DataAccessLayer()
 
     if not get_cookies(request):
-        request.send_header('Location', '/admin/')
+        redirect(request, '/admin/')
 
     if request.HTTP_METHODS == "POST":
         post_attr = method_POST(request)
@@ -109,7 +109,7 @@ def update_post(request):
     request.send_response(HTTP_CODE.SEE_OTHER)
 
     if not get_cookies(request):
-        request.send_header('Location', '/admin/')
+        redirect(request, '/admin/')
 
     username = get_cookies(request).get('cookie_username')
     db = DataAccessLayer()
@@ -119,7 +119,7 @@ def update_post(request):
         post_id = get_post_id_after_split(request)
         if not db.is_post_exist(post_id) or \
                 not db.check_the_author_of_the_posts(username, post_id):
-            request.send_header('Location', '/error/')
+            redirect(request, '/error/')
         else:
             post = db.get_post_by_id(post_id)
             title, description = post[0], post[1]
@@ -140,7 +140,7 @@ def update_post(request):
         username = get_cookies(request).get('cookie_username')
 
         db.update_post(int(post_id), username, title, description)
-        request.send_header('Location', '/admin/blog/')
+        redirect(request, '/admin/blog/')
 
     f = open(settings.TEMPLATES_DIR + '/update_post.html')
     read = f.read()
@@ -180,10 +180,10 @@ def delete_post(request):
     db = DataAccessLayer()
 
     if not db.check_the_author_of_the_posts(username, post_id):
-        request.send_header('Location', '/error/')
+        redirect(request, '/error/')
     else:
         db.delete_post_by_id(int(post_id))
-        request.send_header('Location', '/admin/blog/')
+        redirect(request, '/admin/blog/')
 
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
@@ -196,7 +196,7 @@ def login(request):
         request.send_response(HTTP_CODE.TEMPORARY_REDIRECT)
 
         if get_cookies(request):
-            request.send_header('Location', '/admin/blog/')
+            redirect(request, '/admin/blog/')
         else:
             request.send_header('Content-Type', 'text/html')
 
@@ -209,8 +209,8 @@ def login(request):
         password = user_attr.get('password')
 
         if db.is_login_correct(username, password):
-            request.send_header('Set-Cookie', 'cookie_username=%s;path=/;' % username)
-            request.send_header('Location', '/admin/blog/')
+            set_cookie(request, 'cookie_username', username)
+            redirect(request, '/admin/blog/')
             print("Login Success")
         else:
             request.send_header('Content-Type', 'text/html')
@@ -251,10 +251,9 @@ def register(request):
 
 def logout(request):
     request.send_response(HTTP_CODE.TEMPORARY_REDIRECT)
-
     if get_cookies(request).get('cookie_username'):
-        request.send_header("Set-Cookie", clear_cookie())
-        request.send_header('Location', '/admin/')
+        set_clear_cookie(request)
+        redirect(request, '/admin/')
     else:
         request.send_header('Content-Type', 'text/html')
 
@@ -279,3 +278,20 @@ def error(request):
     request.send_header('Content-Type', 'text/html')
     request.end_headers()
     request.wfile.write(str.encode(html))
+
+
+def get_post_id_after_split(request):
+    index_for_get_id_after_split = -2
+    post_id = int(request.path.split('/')[index_for_get_id_after_split])
+    return post_id
+
+
+def redirect(request, path):
+    request.send_response(HTTP_CODE.REDIRECT)
+    request.send_header('Content-Type', 'text/html')
+    request.send_header('Location', str(path))
+    request.end_headers()
+    return request
+
+
+
