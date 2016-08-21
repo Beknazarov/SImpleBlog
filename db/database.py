@@ -88,16 +88,6 @@ class DataAccessLayer:
 
 db = DataAccessLayer()
 db.create_user("nurs", "1", "nurs@mail.ru")
-# print(db.users)
-# db.create_user("Askar", "12345", "askar@mail.ru")
+
 db.create_post("nurs", "post2", "desc2")
-# db.create_post("Askar", "post1", "desc1")
-#
-# db.create_post("Askar", "post3", "desc3")
-# print(db.is_user_exist("Askar"))
-# for key, value in db.posts.items():
-#     for k, v in value.items():
-#         print(key)
-#         print(k)
-#         print(v)
-# print(db.posts)
+
