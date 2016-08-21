@@ -1,36 +1,37 @@
 class DataAccessLayer:
     users = {}
     posts = {}
-    post_identity_id = [0]
-    user_identity_id = [0]
+    post_increment_id = [0]
+    user_increment_id = [0]
 
     def create_user(self, username, password, email):
         user_attribute = [username, password, email]
-        self.users[self.set_identity_user_id()] = user_attribute
+        self.users[self.set_increment_user_id()] = user_attribute
         self.posts[username] = {}
 
+    def set_increment_user_id(self):
+        self.user_increment_id[0] += 1
+        return sum(self.user_increment_id)
+
     def create_post(self, username, title, description):
-        self.posts[username][self.set_identity_post_id()] = [title, description]
+        self.posts[username][self.set_increment_post_id()] = [title, description]
 
-    def set_identity_user_id(self):
-        self.user_identity_id[0] += 1
-        return sum(self.user_identity_id)
+    def set_increment_post_id(self):
+        self.post_increment_id[0] += 1
+        return sum(self.post_increment_id)
 
-    def set_identity_post_id(self):
-        self.post_identity_id[0] += 1
-        return sum(self.post_identity_id)
+    def is_user_exist(self, username):
+        for user_attribute in self.users.values():
+            name = user_attribute[0]
+            if name == username:
+                return True
+        return False
 
-    def print_users(self):
-        return self.users
-
-    def print_posts(self):
-        return self.posts
-
-    def is_user_exist(self, username, password):
+    def is_login_correct(self, username, password):
         for user_attribute in self.users.values():
             name = user_attribute[0]
             pswd = user_attribute[1]
-            if name == username and pswd == password:
+            if name == username and password == pswd:
                 return True
         return False
 
@@ -73,8 +74,10 @@ class DataAccessLayer:
                     return
 
     def update_post(self, post_id, username, new_title, new_description):
-        self.posts[username][post_id][0] = new_title
-        self.posts[username][post_id][1] = new_description
+        index_title = 0
+        index_description = 1
+        self.posts[username][post_id][index_title] = new_title
+        self.posts[username][post_id][index_description] = new_description
 
     def count_post(self):
         count = 0
@@ -85,8 +88,9 @@ class DataAccessLayer:
 
 db = DataAccessLayer()
 db.create_user("nurs", "1", "nurs@mail.ru")
+# print(db.users)
 # db.create_user("Askar", "12345", "askar@mail.ru")
-# db.create_post("Nursultan", "post2", "desc2")
+db.create_post("nurs", "post2", "desc2")
 # db.create_post("Askar", "post1", "desc1")
 #
 # db.create_post("Askar", "post3", "desc3")

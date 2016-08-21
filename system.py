@@ -20,6 +20,17 @@ def method_POST(request):
     return model_attr
 
 
+def get_post_id_after_split(request):
+    index_for_get_id_after_split = -2
+    post_id = int(request.path.split('/')[index_for_get_id_after_split])
+    return post_id
+
+
+def clear_cookie():
+    expires = "cookie_username=0;path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    return expires
+
+
 def get_cookies(request):
     res = {}
     cookie = (request.headers.get_all('Cookie', failobj={}))
