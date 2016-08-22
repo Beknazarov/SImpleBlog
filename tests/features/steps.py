@@ -1,22 +1,25 @@
-from lettuce import *
+from lettuce import step, world
 
 
-@step('I have the number (\d+)')
-def have_the_number(step, number):
-    world.number = int(number)
+@step(r'Open "(.*)" page')
+def should_open_main_page(step, page):
+    world.current_page = world.mapping[page]
+    world.browser.get(world.current_page['url'])
 
 
-@step('I compute its factorial')
-def compute_its_factorial(step):
-    world.number = factorial(world.number)
+@step(u'Name "([^"]*)" value "([^"]*)"')
+def set_input_value(step, name, value):
+    elem = world.browser.find_element_by_name(world.current_page[name])
+    elem.send_keys(value)
 
 
-@step('I see the number (\d+)')
-def check_number(step, expected):
-    expected = int(expected)
-    assert world.number == expected, \
-        "Got %d" % world.number
+@step(u'Click "([^"]*)"')
+def click_group1(step, element):
+    el = world.browser.find_element_by_css_selector(world.current_page[element])
+    el.click()
 
 
-def factorial(number):
-    return 1
+@step(u'Click2 "([^"]*)"')
+def click_group1(step, element):
+    el = world.browser.find_element_by_xpath(world.current_page[element])
+    el.click()

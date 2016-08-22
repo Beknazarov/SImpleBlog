@@ -5,6 +5,7 @@ import json
 
 from db.database import DataAccessLayer
 
+db = DataAccessLayer()
 JSON_FILE_DIR = '/home/kinglight/PycharmProjects/Test/AttractorWebServer/data_json/'
 
 
@@ -13,23 +14,14 @@ def get_json_value():
         return json.load(f)
 
 
-def createMultipleUser(db_object):
+def create(db_object):
     try:
         decoded = get_json_value()
 
-        for x in decoded['user']:
-            db_object.create_user(username=x['username'], password=x['password'], email=x['email'])
-    except (ValueError, KeyError, TypeError):
-        print("JSON format error")
-
-
-def createMultiplePost(db_object):
-    try:
-        decoded = get_json_value()
-
-        for x in decoded['post']:
-            print(x['username'])
-            db_object.create_post(username=x['username'], title=x['title'], description=x['description'])
+        for user in decoded['user']:
+            db_object.create_user(username=user['username'], password=user['password'], email=user['email'])
+        for post in decoded['post']:
+            db_object.create_post(username=post['author'], title=post['title'], description=post['description'])
     except (ValueError, KeyError, TypeError):
         print("JSON format error")
 
@@ -37,8 +29,7 @@ def createMultiplePost(db_object):
 class TestDataAccessLayer(TestCase):
     def setUp(self):
         self.db = DataAccessLayer()
-        createMultipleUser(self.db)
-        createMultiplePost(self.db)
+        create(self.db)
 
     def test_user_is_exist(self):
         username = "nurs"

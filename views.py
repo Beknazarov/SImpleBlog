@@ -214,8 +214,9 @@ def login(request):
             print("Login Success")
         else:
             request.send_header('Content-Type', 'text/html')
-            context["error"] = "Ошибка авторизации"
+            context["error"] = "Error authenticated"
             print("Login Error")
+            raise ValueError("Login Error")
 
     html = Template('login.html', context).render()
     request.end_headers()
